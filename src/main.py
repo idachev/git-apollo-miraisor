@@ -29,18 +29,39 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def no_ticket_ids_in_commit_message(commit_message, ticket_ids):
+    for ticket_id in ticket_ids:
+        if ticket_id in commit_message:
+            return False
+    return True
+
+
+def filter_commit_messages_without_ticket_ids(commit_messages, ticket_ids):
+    return list(filter(lambda commit_message:
+                       no_ticket_ids_in_commit_message(
+                               commit_message, ticket_ids),
+                       commit_messages))
+
+
 def get_all_branches_ticket_ids(repo, branches):
     all_ticket_ids = []
 
     for i, branch in enumerate(branches[:-1]):
         commit_messages = get_commit_messages(repo, branch, branches[i + 1])
         ticket_ids = extract_jira_ticket_numbers(commit_messages)
-        all_ticket_ids.append(ticket_ids)
+        commit_messages_without_ticket_ids = \
+            filter_commit_messages_without_ticket_ids(
+                    commit_messages, ticket_ids)
+        all_ticket_ids.append((ticket_ids, commit_messages_without_ticket_ids))
 
     return repo, all_ticket_ids
 
 
-def create_miro_shape_with_tickets(ticket_ids, x, y, from_branch, to_branch):
+def create_miro_shape_with_tickets(
+        ticket_ids,
+        commit_messages,
+        x, y,
+        from_branch, to_branch):
     shape_text = f"<b>{from_branch} -> {to_branch}</b>\n"
 
     ticket_id_to_title = get_jira_tickets_titles(ticket_ids)
@@ -52,6 +73,10 @@ def create_miro_shape_with_tickets(ticket_ids, x, y, from_branch, to_branch):
         ticket_texts.append(
                 f"<br/><a href=\"{ticket_url}\" target=\"blank\">"
                 f"{ticket_id}</a> - {ticket_title}")
+
+    for commit_message in commit_messages:
+        ticket_texts.append(
+                f"<br/>{commit_message}")
 
     if len(ticket_texts) > 0:
         shape_text += "<br/>\n"
@@ -80,8 +105,11 @@ def create_branch_shapes(
     for i, branch in enumerate(branches[:-1]):
         logger.info(f"Processing branch: {branch} to {branches[i + 1]}")
 
+        ticket_ids, commit_messages = all_ticket_ids[i]
         ticket_shape = create_miro_shape_with_tickets(
-                all_ticket_ids[i], x_offset, y_offset, branch, branches[i + 1])
+                ticket_ids, commit_messages,
+                x_offset, y_offset, branch,
+                branches[i + 1])
 
         if i == 0:
             first_branch_shape = ticket_shape
@@ -102,8 +130,10 @@ def create_branch_shapes(
 def calculate_max_shape_height_offset(all_ticket_ids):
     max_tickets_count = 0
 
-    for ticket_ids in all_ticket_ids:
-        max_tickets_count = max(max_tickets_count, len(ticket_ids))
+    for ticket_ids_iter in all_ticket_ids:
+        ticket_ids, commit_messages = ticket_ids_iter
+        max_tickets_count = max(max_tickets_count,
+                                len(ticket_ids) + len(commit_messages))
 
     return max_tickets_count * 5
 

@@ -50,7 +50,7 @@ def calculate_shape_width_and_height_from_text(text):
     num_lines = len(text_lines)
 
     if num_lines > 20:
-        height_per_line = 12
+        height_per_line = 15
     elif num_lines > 15:
         height_per_line = 20
     elif num_lines > 10:
