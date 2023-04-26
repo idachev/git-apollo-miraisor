@@ -44,17 +44,18 @@ def filter_commit_messages_without_ticket_ids(commit_messages, ticket_ids):
 
 
 def get_all_branches_ticket_ids(repo, branches):
-    all_ticket_ids = []
+    all_ticket_ids_and_commit_msgs = []
 
     for i, branch in enumerate(branches[:-1]):
         commit_messages = get_commit_messages(repo, branch, branches[i + 1])
         ticket_ids = extract_jira_ticket_numbers(commit_messages)
-        commit_messages_without_ticket_ids = \
+        commit_msgs_without_ticket_ids = \
             filter_commit_messages_without_ticket_ids(
                     commit_messages, ticket_ids)
-        all_ticket_ids.append((ticket_ids, commit_messages_without_ticket_ids))
+        all_ticket_ids_and_commit_msgs.append(
+                (ticket_ids, commit_msgs_without_ticket_ids))
 
-    return repo, all_ticket_ids
+    return repo, all_ticket_ids_and_commit_msgs
 
 
 def create_miro_shape_with_tickets(
@@ -93,7 +94,7 @@ def create_miro_shape_with_tickets(
 
 def create_branch_shapes(
         branches,
-        all_ticket_ids,
+        all_ticket_ids_and_commit_msgs,
         x_offset,
         y_offset,
         connectors):
@@ -105,9 +106,9 @@ def create_branch_shapes(
     for i, branch in enumerate(branches[:-1]):
         logger.info(f"Processing branch: {branch} to {branches[i + 1]}")
 
-        ticket_ids, commit_messages = all_ticket_ids[i]
+        ticket_ids, commit_msgs = all_ticket_ids_and_commit_msgs[i]
         ticket_shape = create_miro_shape_with_tickets(
-                ticket_ids, commit_messages,
+                ticket_ids, commit_msgs,
                 x_offset, y_offset, branch,
                 branches[i + 1])
 
@@ -127,13 +128,12 @@ def create_branch_shapes(
     return first_branch_shape, max_shape_height
 
 
-def calculate_max_shape_height_offset(all_ticket_ids):
+def calculate_max_shape_height_offset(all_ticket_ids_and_commit_msgs):
     max_tickets_count = 0
 
-    for ticket_ids_iter in all_ticket_ids:
-        ticket_ids, commit_messages = ticket_ids_iter
+    for ticket_ids, commit_msgs in all_ticket_ids_and_commit_msgs:
         max_tickets_count = max(max_tickets_count,
-                                len(ticket_ids) + len(commit_messages))
+                                len(ticket_ids) + len(commit_msgs))
 
     return max_tickets_count * 5
 
@@ -151,10 +151,10 @@ def get_repos_to_all_branches_ticket_ids(repos, branches):
                                            branches=branches))
 
         for future in concurrent.futures.as_completed(futures):
-            repo, all_ticket_ids = future.result()
+            repo, all_ticket_ids_and_commit_msgs = future.result()
             logging.info(f"Future get branches ticket IDs: "
-                         f"{repo}, {all_ticket_ids}")
-            repo_to_all_ticket_ids[repo] = all_ticket_ids
+                         f"{repo}, {all_ticket_ids_and_commit_msgs}")
+            repo_to_all_ticket_ids[repo] = all_ticket_ids_and_commit_msgs
 
     return repo_to_all_ticket_ids
 
@@ -173,13 +173,16 @@ def create_miro_board_for_repos(repos, branches):
     for repo in repos:
         logger.info(f"Processing repo: {repo}")
 
-        all_ticket_ids = repo_to_all_ticket_ids[repo]
-        any_tickets = any(ticket_ids for ticket_ids in all_ticket_ids)
+        all_ticket_ids_and_commit_msgs = repo_to_all_ticket_ids[repo]
+        any_tickets = any(ticket_ids and commit_msgs for
+                          (ticket_ids, commit_msgs) in
+                          all_ticket_ids_and_commit_msgs)
 
         shape_color = SHAPE_COLOR_NO_TICKETS if not any_tickets \
             else SHAPE_COLOR_TICKETS
 
-        y_offset += calculate_max_shape_height_offset(all_ticket_ids)
+        y_offset += calculate_max_shape_height_offset(
+                all_ticket_ids_and_commit_msgs)
 
         repo_text = f"<a href=\"https://github.com/{GITHUB_OWNER}/{repo}\" " \
                     f"target=\"blank\">{repo}</a></b>"
@@ -191,7 +194,8 @@ def create_miro_board_for_repos(repos, branches):
         x_offset = repo_shape_width + SHAPES_X_PADDING
 
         first_branch_shape, max_shape_height = \
-            create_branch_shapes(branches, all_ticket_ids, x_offset, y_offset,
+            create_branch_shapes(branches, all_ticket_ids_and_commit_msgs,
+                                 x_offset, y_offset,
                                  connectors)
 
         if first_branch_shape is not None:
