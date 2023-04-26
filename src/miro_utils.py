@@ -103,6 +103,20 @@ def miro_create_connector(start_shape_id, end_shape_id):
     return response.json()
 
 
+def miro_create_connectors(connectors):
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+
+        futures = []
+
+        for (start_shape_id, end_shape_id) in connectors:
+            futures.append(executor.submit(miro_create_connector,
+                                           start_shape_id=start_shape_id,
+                                           end_shape_id=end_shape_id))
+
+        for future in concurrent.futures.as_completed(futures):
+            logging.info(f"Future create connectors result: {future.result()}")
+
+
 def miro_delete_shape(shape_id):
     logging.info(f"Delete shape: {shape_id}")
 
