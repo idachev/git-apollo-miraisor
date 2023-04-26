@@ -1,5 +1,6 @@
-import logging
 import concurrent.futures
+import logging
+
 import requests
 
 from config import (
@@ -129,7 +130,8 @@ def miro_delete_shapes(shape_ids):
         futures = []
 
         for shape_id in shape_ids:
-            futures.append(executor.submit(miro_delete_shape, shape_id=shape_id))
+            futures.append(
+                    executor.submit(miro_delete_shape, shape_id=shape_id))
 
         for future in concurrent.futures.as_completed(futures):
             logging.info(f"Future delete result: {future.result()}")

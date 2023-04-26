@@ -49,7 +49,8 @@ def create_miro_shape_with_tickets(ticket_ids, x, y, from_branch, to_branch):
         ticket_url = JIRA_BROWSE_URL + f"/{ticket_id}"
         ticket_title = ticket_id_to_title[ticket_id]
         ticket_texts.append(
-                f"<br/><a href=\"{ticket_url}\" target=\"blank\">{ticket_id}</a> - {ticket_title}")
+                f"<br/><a href=\"{ticket_url}\" target=\"blank\">"
+                f"{ticket_id}</a> - {ticket_title}")
 
     if len(ticket_texts) > 0:
         shape_text += "<br/>\n"
@@ -120,7 +121,8 @@ def get_repos_to_all_branches_ticket_ids(repos, branches):
 
         for future in concurrent.futures.as_completed(futures):
             repo, all_ticket_ids = future.result()
-            logging.info(f"Future get branches ids: {repo}, {all_ticket_ids}")
+            logging.info(f"Future get branches ticket IDs: "
+                         f"{repo}, {all_ticket_ids}")
             repo_to_all_ticket_ids[repo] = all_ticket_ids
 
     return repo_to_all_ticket_ids
