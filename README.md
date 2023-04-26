@@ -1,6 +1,6 @@
-# Git Apollo Miraisor
+# GitApolloMiraisor
 
-<img src="imgs/git-apollo-miraisor-board-example.png">
+![GitApolloMiraisor](imgs/git-apollo-miraisor-board-example.png?raw=true "GitApolloMiraisor")
 
 Visualize your Git branches and Jira ticket statuses on a Miro board with GitApolloMiraisor.
 
