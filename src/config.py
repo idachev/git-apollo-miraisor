@@ -15,7 +15,7 @@ MIRO_BOARD_ID = os.environ.get("MIRO_BOARD_ID")
 REPOS = os.environ.get("REPOS").split(",")
 BRANCHES = os.environ.get("BRANCHES", "master,qa,staging,production").split(",")
 
-JIRA_URL = "https://shipcars.atlassian.net/browse/{}"
+JIRA_BROWSE_URL = os.environ.get("JIRA_BROWSE_URL")
 
 REPO_PADDING = int(os.environ.get("REPO_PADDING", 200))
 SHAPES_X_PADDING = int(os.environ.get("SHAPES_X_PADDING", 150))

@@ -64,7 +64,7 @@ def miro_create_shape(x, y, text, color=None):
         },
         "position": {
             "origin": "center",
-            "x": x + width/2,
+            "x": x + width / 2,
             "y": y
         },
         "geometry": {

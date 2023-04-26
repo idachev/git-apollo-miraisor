@@ -36,4 +36,4 @@ def extract_jira_ticket_numbers(commit_messages):
     ticket_ids = set(re.findall(ticket_pattern, ' '.join(commit_messages)))
 
     return sorted(set(
-            filter(lambda ticket_id: 'LITE-000' not in ticket_id, ticket_ids)))
+        filter(lambda ticket_id: 'LITE-000' not in ticket_id, ticket_ids)))
