@@ -1,6 +1,7 @@
 import concurrent.futures
 import logging
 import os
+import time
 
 from config import (
     REPOS,
@@ -165,6 +166,13 @@ def create_miro_board_for_repos(repos, branches):
 
 
 if __name__ == "__main__":
-    miro_cleanup_board()
+    while True:
+        miro_cleanup_board()
 
-    create_miro_board_for_repos(REPOS, BRANCHES)
+        create_miro_board_for_repos(REPOS, BRANCHES)
+
+        each_seconds = int(os.getenv("EXECUTE_EACH_SECONDS", 0))
+        if each_seconds > 0:
+            time.sleep(each_seconds)
+        else:
+            break

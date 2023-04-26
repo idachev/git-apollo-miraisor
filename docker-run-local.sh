@@ -14,7 +14,7 @@ set -e
 
 ${DIR}/docker-build.sh
 
-docker run -it --rm \
+docker run -d -it \
   -e REPOS=${REPOS} \
   -e BRANCHES=${BRANCHES} \
   -e GITHUB_OWNER=${GITHUB_OWNER} \
@@ -29,4 +29,5 @@ docker run -it --rm \
   -e JIRA_USERNAME=${JIRA_USERNAME} \
   -e JIRA_API_TOKEN=${JIRA_API_TOKEN} \
   -e JIRA_BROWSE_URL=${JIRA_BROWSE_URL} \
+  -e EXECUTE_EACH_SECONDS=${EXECUTE_EACH_SECONDS} \
   ${DOCKER_IMG_TAG}
