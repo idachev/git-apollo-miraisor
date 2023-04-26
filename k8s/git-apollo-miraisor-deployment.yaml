@@ -39,21 +39,9 @@ spec:
             - name: SHAPE_COLOR_TICKETS
               value: "#FFCCCB"
             - name: EXECUTE_EACH_SECONDS
-              value: "0"
+              value: "600"
           envFrom:
             - secretRef:
                 name: git-apollo-miraisor-secrets
       restartPolicy: Always
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: git-apollo-miraisor
-spec:
-  selector:
-    app: git-apollo-miraisor
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 8080
-  type: LoadBalancer
+
