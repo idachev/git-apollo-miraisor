@@ -24,8 +24,13 @@ def get_jira_ticket_title(ticket_id):
 
     try:
         issue = jira.issue(ticket_id)
-    except:
-        logging.exception(f"Failed to get summary for {ticket_id}")
+    except Exception as e:
+        error_message = str(e)
+
+        if 'HTTP 404' in error_message:
+            logging.warning(f"Got 404, ticket not found: {ticket_id}")
+        else:
+            logging.exception(f"Failed to get summary for {ticket_id}")
 
         return ticket_id, ''
 

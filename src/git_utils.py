@@ -1,3 +1,4 @@
+import http
 import logging
 
 import requests as requests
@@ -22,7 +23,7 @@ def get_commit_messages(repo, base_branch, compare_branch):
 
     response = requests.get(url, headers=github_headers)
 
-    if response.status_code != 200:
+    if response.status_code != http.HTTPStatus.OK:
         logger.warning(f"Failed to get commit messages, "
                        f"repo: {repo}, {compare_branch}...{base_branch}, "
                        f"Status code: {response.status_code}, "

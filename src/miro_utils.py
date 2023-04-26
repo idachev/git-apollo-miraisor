@@ -1,6 +1,10 @@
 import concurrent.futures
+import http
 import logging
+import math
+import random
 import re
+import string
 import time
 
 import requests
@@ -8,7 +12,7 @@ import requests
 from config import (
     MIRO_API_URL,
     MIRO_API_TOKEN,
-    MIRO_BOARD_ID,
+    MIRO_BOARD_ID, MAX_REQUEST_RETRIES, SHAPE_MAX_HEIGHT,
 )
 
 logger = logging.getLogger(__name__)
@@ -26,8 +30,42 @@ connectors_url = f'{MIRO_API_URL}/boards/{MIRO_BOARD_ID}/connectors'
 items_url = f'{MIRO_API_URL}/boards/{MIRO_BOARD_ID}/items'
 
 
+def execute_requests_with_retry(lambda_func):
+    for retry in range(1, MAX_REQUEST_RETRIES):
+        response = lambda_func()
+
+        if response.status_code == http.HTTPStatus.TOO_MANY_REQUESTS:
+            time.sleep(
+                random.randrange(1, math.ceil(1.5 * MAX_REQUEST_RETRIES)))
+            continue
+
+        if response.status_code == http.HTTPStatus.NO_CONTENT:
+            return None
+
+        if response.status_code == http.HTTPStatus.FORBIDDEN:
+            if 'the request has been blocked' in response.text:
+                logger.warning(
+                        "Found 'the request has been blocked' "
+                        "in response, sleep a bit...")
+                logger.warning(f"Response: {response.text}")
+                return None
+            else:
+                logger.error(
+                        f"Got forbidden "
+                        f"{response.status_code}, {response.text}")
+                return None
+
+        try:
+            return response.json()
+        except Exception as e:
+            logger.exception(
+                    f"On retry {retry} Failed to parse response: "
+                    f"{response.status_code}, {response.text}, {e}")
+            time.sleep(random.randrange(2, 20))
+
+
 def normalize_line_len(line):
-    found = re.search("(?P<link><a[^>]+href=\"https?://[^\s\"]+[^>]+>)", line)
+    found = re.search(r"(?P<link><a[^>]+href=\"https?://[^\s\"]+[^>]+>)", line)
 
     if not found:
         return len(line)
@@ -41,7 +79,7 @@ def normalize_line_len(line):
 
 def calculate_shape_width_and_height_from_text(text):
     width_per_char = 6
-    height_per_line = 30
+    height_per_line = 25
     padding = 50
     min_width = 200
     min_height = 100
@@ -51,19 +89,33 @@ def calculate_shape_width_and_height_from_text(text):
     num_lines = len(text_lines)
 
     if num_lines > 20:
-        height_per_line = 15
+        height_per_line = 10
     elif num_lines > 15:
-        height_per_line = 20
+        height_per_line = 15
     elif num_lines > 10:
-        height_per_line = 25
+        height_per_line = 20
 
     width = max(min_width, max_line_length * width_per_char + padding)
-    height = max(min_height, num_lines * height_per_line + padding)
+    height = min(SHAPE_MAX_HEIGHT,
+                 max(min_height, num_lines * height_per_line + padding))
 
     return width, height
 
 
+def remove_non_ascii(a_str):
+    ascii_chars = set(string.printable)
+
+    return ''.join(
+            filter(lambda x: x in ascii_chars, a_str)
+    )
+
+
+total_max_send = 0
+
+
 def miro_create_shape(x, y, text, color=None):
+    global total_max_send
+
     """
     Check https://developers.miro.com/reference/create-shape-item
 
@@ -80,6 +132,8 @@ def miro_create_shape(x, y, text, color=None):
 
     is_single_line = len(text.split("\n")) == 1
 
+    text = remove_non_ascii(text)
+
     shape_payload = {
         "data": {
             "content": text,
@@ -87,12 +141,12 @@ def miro_create_shape(x, y, text, color=None):
         },
         "position": {
             "origin": "center",
-            "x": x + width / 2,
-            "y": y
+            "x": math.ceil(x + width / 2),
+            "y": math.ceil(y)
         },
         "geometry": {
-            "height": height,
-            "width": width
+            "height": math.ceil(height),
+            "width": math.ceil(width)
         },
         "style": {
             "textAlignVertical": "middle",
@@ -102,15 +156,10 @@ def miro_create_shape(x, y, text, color=None):
     if color:
         shape_payload['style']['fillColor'] = color
 
-    while True:
-        response = requests.post(shapes_url,
-                                 json=shape_payload, headers=miro_headers)
-
-        if response.status_code == 429:
-            time.sleep(1)
-            continue
-
-        return response.json()
+    return execute_requests_with_retry(
+            lambda: requests.post(shapes_url,
+                                  json=shape_payload,
+                                  headers=miro_headers))
 
 
 def miro_create_connector(start_shape_id, end_shape_id):
@@ -127,15 +176,9 @@ def miro_create_connector(start_shape_id, end_shape_id):
         "shape": "curved"
     }
 
-    while True:
-        response = requests.post(connectors_url,
-                                 json=connector_payload, headers=miro_headers)
-
-        if response.status_code == 429:
-            time.sleep(1)
-            continue
-
-        return response.json()
+    return execute_requests_with_retry(
+            lambda: requests.post(connectors_url,
+                                  json=connector_payload, headers=miro_headers))
 
 
 def miro_create_connectors(connectors):
@@ -155,15 +198,9 @@ def miro_create_connectors(connectors):
 def miro_delete_shape(shape_id):
     logging.info(f"Delete shape: {shape_id}")
 
-    while True:
-        response = requests.delete(shapes_url + f"/{shape_id}",
-                                   headers=miro_headers)
-
-        if response.status_code == 429:
-            time.sleep(1)
-            continue
-
-        break
+    execute_requests_with_retry(
+            lambda: requests.delete(shapes_url + f"/{shape_id}",
+                                    headers=miro_headers))
 
 
 def miro_delete_shapes(shape_ids):
@@ -183,21 +220,13 @@ def miro_cleanup_board():
     iter_cursor = ""
     while True:
         params = {
-            "limit": 50,
+            "limit": 10,
             "type": "shape",
             "cursor": iter_cursor
         }
 
-        items = {}
-        while True:
-            response = requests.get(items_url, params, headers=miro_headers)
-
-            if response.status_code == 429:
-                time.sleep(1)
-                continue
-
-            items = response.json()
-            break
+        items = execute_requests_with_retry(
+                lambda: requests.get(items_url, params, headers=miro_headers))
 
         if 'data' in items and len(items['data']) > 0:
             shape_ids = list(map(lambda shape: shape['id'], items['data']))

@@ -35,5 +35,11 @@ SHAPE_COLOR_NO_TICKETS = get_default_if_empty(
 SHAPE_COLOR_TICKETS = get_default_if_empty(
         os.environ.get("SHAPE_COLOR_TICKETS"), "#FFCCCB")
 
+SHAPE_MAX_HEIGHT = int(
+        get_default_if_empty(os.environ.get("SHAPE_MAX_HEIGHT"), 1000))
+
 TRUNCATE_LINE_LENGTH = int(
         get_default_if_empty(os.environ.get("TRUNCATE_LINE_LENGTH"), 65))
+
+MAX_REQUEST_RETRIES = int(
+        get_default_if_empty(os.environ.get("MAX_REQUEST_RETRIES"), 7))

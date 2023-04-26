@@ -12,7 +12,7 @@ from config import (
     SHAPES_X_PADDING,
     JIRA_BROWSE_URL,
     GITHUB_OWNER,
-    TRUNCATE_LINE_LENGTH,
+    TRUNCATE_LINE_LENGTH, SHAPE_MAX_HEIGHT,
 )
 from git_utils import get_commit_messages
 from jira_utils import extract_jira_ticket_numbers, \
@@ -117,10 +117,27 @@ def create_branch_shapes(
         logger.info(f"Processing branch: {branch} to {branches[i + 1]}")
 
         ticket_ids, commit_msgs = all_ticket_ids_and_commit_msgs[i]
+
+        has_commit_msgs = len(commit_msgs) > 0
+        commit_msgs = list(
+                filter(lambda msg: 'pull request #' not in msg, commit_msgs))
+
+        if len(commit_msgs) == 0 and has_commit_msgs:
+            commit_msgs = ['...']
+
         ticket_shape = create_miro_shape_with_tickets(
                 ticket_ids, commit_msgs,
                 x_offset, y_offset, branch,
                 branches[i + 1])
+
+        if ticket_shape is None:
+            ticket_shape = create_miro_shape_with_tickets(
+                    ticket_ids, ['...'],
+                    x_offset, y_offset, branch,
+                    branches[i + 1])
+
+        if ticket_shape is None:
+            continue
 
         if i == 0:
             first_branch_shape = ticket_shape
@@ -139,13 +156,15 @@ def create_branch_shapes(
 
 
 def calculate_max_shape_height_offset(all_ticket_ids_and_commit_msgs):
-    max_tickets_count = 0
+    max_lines = 0
 
     for ticket_ids, commit_msgs in all_ticket_ids_and_commit_msgs:
-        max_tickets_count = max(max_tickets_count,
-                                len(ticket_ids) + len(commit_msgs))
+        total_lines = len(ticket_ids) + len(commit_msgs)
+        max_lines = max(max_lines, total_lines)
 
-    return max_tickets_count * 5
+    offset = max_lines * 3
+
+    return min(SHAPE_MAX_HEIGHT / 2, offset)
 
 
 def get_repos_to_all_branches_ticket_ids(repos, branches):
