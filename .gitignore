@@ -159,3 +159,5 @@ cython_debug/
 /tmp
 
 /version.txt
+
+/docker-run-env.sh

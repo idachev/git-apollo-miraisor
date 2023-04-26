@@ -2,8 +2,6 @@ import base64
 import logging
 import re
 
-import requests
-
 from jira import JIRA
 
 from config import JIRA_USERNAME, JIRA_API_TOKEN, JIRA_API_URL

@@ -2,7 +2,7 @@
 [ "$1" = -x ] && shift && set -x
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-source ${DIR}/docker-env.sh
+source ${DIR}/docker-build-env.sh
 
 set -e
 
