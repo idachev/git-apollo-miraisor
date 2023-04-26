@@ -36,7 +36,7 @@ def execute_requests_with_retry(lambda_func):
 
         if response.status_code == http.HTTPStatus.TOO_MANY_REQUESTS:
             time.sleep(
-                random.randrange(1, math.ceil(1.5 * MAX_REQUEST_RETRIES)))
+                    random.randrange(1, math.ceil(1.5 * MAX_REQUEST_RETRIES)))
             continue
 
         if response.status_code == http.HTTPStatus.NO_CONTENT:
@@ -79,7 +79,7 @@ def normalize_line_len(line):
 
 def calculate_shape_width_and_height_from_text(text):
     width_per_char = 6
-    height_per_line = 25
+    height_per_line = 20
     padding = 50
     min_width = 200
     min_height = 100
@@ -87,13 +87,6 @@ def calculate_shape_width_and_height_from_text(text):
     text_lines = text.split("\n")
     max_line_length = max(normalize_line_len(line) for line in text_lines)
     num_lines = len(text_lines)
-
-    if num_lines > 20:
-        height_per_line = 10
-    elif num_lines > 15:
-        height_per_line = 15
-    elif num_lines > 10:
-        height_per_line = 20
 
     width = max(min_width, max_line_length * width_per_char + padding)
     height = min(SHAPE_MAX_HEIGHT,
@@ -220,7 +213,7 @@ def miro_cleanup_board():
     iter_cursor = ""
     while True:
         params = {
-            "limit": 10,
+            "limit": 50,
             "type": "shape",
             "cursor": iter_cursor
         }

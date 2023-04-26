@@ -162,9 +162,9 @@ def calculate_max_shape_height_offset(all_ticket_ids_and_commit_msgs):
         total_lines = len(ticket_ids) + len(commit_msgs)
         max_lines = max(max_lines, total_lines)
 
-    offset = max_lines * 3
+    offset = max_lines * 5
 
-    return min(SHAPE_MAX_HEIGHT / 2, offset)
+    return min(SHAPE_MAX_HEIGHT / 3, offset)
 
 
 def get_repos_to_all_branches_ticket_ids(repos, branches):
