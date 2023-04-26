@@ -10,7 +10,7 @@ from config import (
     SHAPE_COLOR_NO_TICKETS,
     SHAPE_COLOR_TICKETS,
     SHAPES_X_PADDING,
-    JIRA_BROWSE_URL,
+    JIRA_BROWSE_URL, GITHUB_OWNER,
 )
 from git_utils import get_commit_messages
 from jira_utils import extract_jira_ticket_numbers, \
@@ -105,7 +105,7 @@ def calculate_max_shape_height_offset(all_ticket_ids):
     for ticket_ids in all_ticket_ids:
         max_tickets_count = max(max_tickets_count, len(ticket_ids))
 
-    return max_tickets_count * 11
+    return max_tickets_count * 5
 
 
 def get_repos_to_all_branches_ticket_ids(repos, branches):
@@ -136,6 +136,10 @@ def create_miro_board_for_repos(repos, branches):
     repo_to_all_ticket_ids = get_repos_to_all_branches_ticket_ids(repos,
                                                                   branches)
 
+    time_text = f"<b>{time.strftime('%Y-%m-%d %H:%M:%S %Z')}</b>"
+    miro_create_shape(0, y_offset, time_text, color=SHAPE_COLOR_NO_TICKETS)
+    y_offset += REPO_PADDING
+
     for repo in repos:
         logger.info(f"Processing repo: {repo}")
 
@@ -147,7 +151,10 @@ def create_miro_board_for_repos(repos, branches):
 
         y_offset += calculate_max_shape_height_offset(all_ticket_ids)
 
-        repo_shape = miro_create_shape(0, y_offset, f"<b>{repo}</p>",
+        repo_text = f"<a href=\"https://github.com/{GITHUB_OWNER}/{repo}\" " \
+                    f"target=\"blank\">{repo}</a></b>"
+
+        repo_shape = miro_create_shape(0, y_offset, repo_text,
                                        color=shape_color)
 
         repo_shape_width = repo_shape['geometry']['width']

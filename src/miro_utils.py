@@ -1,5 +1,6 @@
 import concurrent.futures
 import logging
+import re
 
 import requests
 
@@ -24,15 +25,28 @@ connectors_url = f'{MIRO_API_URL}/boards/{MIRO_BOARD_ID}/connectors'
 items_url = f'{MIRO_API_URL}/boards/{MIRO_BOARD_ID}/items'
 
 
+def normalize_line_len(line):
+    found = re.search("(?P<link><a[^>]+href=\"https?://[^\s\"]+[^>]+>)", line)
+
+    if not found:
+        return len(line)
+
+    link_found = found.group("link")
+    if link_found:
+        return len(line) - len(link_found)
+    else:
+        return len(line)
+
+
 def calculate_shape_width_and_height_from_text(text):
-    width_per_char = 3
+    width_per_char = 6
     height_per_line = 30
     padding = 50
     min_width = 200
     min_height = 100
 
     text_lines = text.split("\n")
-    max_line_length = max(len(line) for line in text_lines)
+    max_line_length = max(normalize_line_len(line) for line in text_lines)
     num_lines = len(text_lines)
 
     if num_lines > 20:

@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: git-apollo-miraisor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: git-apollo-miraisor
+  template:
+    metadata:
+      labels:
+        app: git-apollo-miraisor
+    spec:
+      containers:
+        - name: git-apollo-miraisor
+          image: idachev/git-apollo-miraisor:latest
+          env:
+            - name: REPOS
+              value: "repo1,repo2"
+            - name: BRANCHES
+              value: "master,qa,staging,production"
+            - name: GITHUB_OWNER
+              value: ...
+            - name: JIRA_API_URL
+              value: "https://my-atlasian-domain.atlassian.net"
+            - name: JIRA_USERNAME
+              value: ...
+            - name: JIRA_BROWSE_URL
+              value: "https://my-atlasian-domain.atlassian.net/browse"
+            - name: MIRO_BOARD_ID
+              value: ...
+            - name: REPO_PADDING
+              value: "200"
+            - name: SHAPES_X_PADDING
+              value: "150"
+            - name: SHAPE_COLOR_NO_TICKETS
+              value: "#AFE1AF"
+            - name: SHAPE_COLOR_TICKETS
+              value: "#FFCCCB"
+            - name: EXECUTE_EACH_SECONDS
+              value: "0"
+          envFrom:
+            - secretRef:
+                name: git-apollo-miraisor-secrets
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: git-apollo-miraisor
+spec:
+  selector:
+    app: git-apollo-miraisor
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: LoadBalancer
