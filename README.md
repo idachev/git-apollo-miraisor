@@ -11,3 +11,10 @@ Easily track differences between branches and navigate to Jira tickets directly
 from the Miro board, streamlining your project management and collaboration efforts.
 Embrace the wisdom of Apollo and unlock the potential of your software development 
 process with GitApolloMiraisor.
+
+## Docker Image
+
+The image is located here:
+[Docker Hub](https://hub.docker.com/repository/docker/idachev/git-apollo-miraisor/general)
+
+> TODO add description how to use it
