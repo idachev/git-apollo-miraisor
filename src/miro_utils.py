@@ -1,6 +1,7 @@
 import concurrent.futures
 import logging
 import re
+import time
 
 import requests
 
@@ -101,9 +102,15 @@ def miro_create_shape(x, y, text, color=None):
     if color:
         shape_payload['style']['fillColor'] = color
 
-    response = requests.post(shapes_url,
-                             json=shape_payload, headers=miro_headers)
-    return response.json()
+    while True:
+        response = requests.post(shapes_url,
+                                 json=shape_payload, headers=miro_headers)
+
+        if response.status_code == 429:
+            time.sleep(1)
+            continue
+
+        return response.json()
 
 
 def miro_create_connector(start_shape_id, end_shape_id):
@@ -120,9 +127,15 @@ def miro_create_connector(start_shape_id, end_shape_id):
         "shape": "curved"
     }
 
-    response = requests.post(connectors_url,
-                             json=connector_payload, headers=miro_headers)
-    return response.json()
+    while True:
+        response = requests.post(connectors_url,
+                                 json=connector_payload, headers=miro_headers)
+
+        if response.status_code == 429:
+            time.sleep(1)
+            continue
+
+        return response.json()
 
 
 def miro_create_connectors(connectors):
@@ -142,7 +155,15 @@ def miro_create_connectors(connectors):
 def miro_delete_shape(shape_id):
     logging.info(f"Delete shape: {shape_id}")
 
-    requests.delete(shapes_url + f"/{shape_id}", headers=miro_headers)
+    while True:
+        response = requests.delete(shapes_url + f"/{shape_id}",
+                                   headers=miro_headers)
+
+        if response.status_code == 429:
+            time.sleep(1)
+            continue
+
+        break
 
 
 def miro_delete_shapes(shape_ids):
@@ -167,10 +188,18 @@ def miro_cleanup_board():
             "cursor": iter_cursor
         }
 
-        response = requests.get(items_url, params, headers=miro_headers)
-        items = response.json()
+        items = {}
+        while True:
+            response = requests.get(items_url, params, headers=miro_headers)
 
-        if len(items['data']) > 0:
+            if response.status_code == 429:
+                time.sleep(1)
+                continue
+
+            items = response.json()
+            break
+
+        if 'data' in items and len(items['data']) > 0:
             shape_ids = list(map(lambda shape: shape['id'], items['data']))
             miro_delete_shapes(shape_ids)
         else:

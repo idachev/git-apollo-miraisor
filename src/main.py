@@ -10,7 +10,9 @@ from config import (
     SHAPE_COLOR_NO_TICKETS,
     SHAPE_COLOR_TICKETS,
     SHAPES_X_PADDING,
-    JIRA_BROWSE_URL, GITHUB_OWNER,
+    JIRA_BROWSE_URL,
+    GITHUB_OWNER,
+    TRUNCATE_LINE_LENGTH,
 )
 from git_utils import get_commit_messages
 from jira_utils import extract_jira_ticket_numbers, \
@@ -36,11 +38,18 @@ def no_ticket_ids_in_commit_message(commit_message, ticket_ids):
     return True
 
 
+def truncate_line(line):
+    return line[:TRUNCATE_LINE_LENGTH] + (line[TRUNCATE_LINE_LENGTH:] and '...')
+
+
 def filter_commit_messages_without_ticket_ids(commit_messages, ticket_ids):
-    return list(filter(lambda commit_message:
+    return list(
+            map(lambda iter_line: truncate_line(iter_line),
+                filter(lambda commit_message:
                        no_ticket_ids_in_commit_message(
-                               commit_message, ticket_ids),
-                       commit_messages))
+                               commit_message,
+                               ticket_ids),
+                       commit_messages)))
 
 
 def get_all_branches_ticket_ids(repo, branches):
@@ -70,7 +79,7 @@ def create_miro_shape_with_tickets(
     ticket_texts = []
     for ticket_id in ticket_ids:
         ticket_url = JIRA_BROWSE_URL + f"/{ticket_id}"
-        ticket_title = ticket_id_to_title[ticket_id]
+        ticket_title = truncate_line(ticket_id_to_title[ticket_id])
         ticket_texts.append(
                 f"<br/><a href=\"{ticket_url}\" target=\"blank\">"
                 f"{ticket_id}</a> - {ticket_title}")
@@ -84,7 +93,8 @@ def create_miro_shape_with_tickets(
 
     shape_text += "\n".join(ticket_texts)
 
-    shape_color = SHAPE_COLOR_NO_TICKETS if not ticket_ids \
+    shape_color = SHAPE_COLOR_NO_TICKETS \
+        if not ticket_ids and not commit_messages \
         else SHAPE_COLOR_TICKETS
 
     shape = miro_create_shape(x, y, shape_text, color=shape_color)

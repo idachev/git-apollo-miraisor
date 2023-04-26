@@ -34,3 +34,6 @@ SHAPE_COLOR_NO_TICKETS = get_default_if_empty(
         os.environ.get("SHAPE_COLOR_NO_TICKETS"), "#AFE1AF")
 SHAPE_COLOR_TICKETS = get_default_if_empty(
         os.environ.get("SHAPE_COLOR_TICKETS"), "#FFCCCB")
+
+TRUNCATE_LINE_LENGTH = int(
+        get_default_if_empty(os.environ.get("TRUNCATE_LINE_LENGTH"), 65))
