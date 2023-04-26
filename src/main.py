@@ -160,7 +160,7 @@ def create_miro_board_for_repos(repos, branches):
         if first_branch_shape is not None:
             connectors.append((repo_shape['id'], first_branch_shape['id']))
 
-        y_offset += max_shape_height / 3 + REPO_PADDING
+        y_offset += max_shape_height / 2 + REPO_PADDING
 
     miro_create_connectors(connectors)
 

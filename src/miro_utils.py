@@ -26,7 +26,7 @@ items_url = f'{MIRO_API_URL}/boards/{MIRO_BOARD_ID}/items'
 
 def calculate_shape_width_and_height_from_text(text):
     width_per_char = 3
-    height_per_line = 25
+    height_per_line = 30
     padding = 50
     min_width = 200
     min_height = 100
@@ -34,6 +34,13 @@ def calculate_shape_width_and_height_from_text(text):
     text_lines = text.split("\n")
     max_line_length = max(len(line) for line in text_lines)
     num_lines = len(text_lines)
+
+    if num_lines > 20:
+        height_per_line = 12
+    elif num_lines > 15:
+        height_per_line = 20
+    elif num_lines > 10:
+        height_per_line = 25
 
     width = max(min_width, max_line_length * width_per_char + padding)
     height = max(min_height, num_lines * height_per_line + padding)
