@@ -203,7 +203,7 @@ def create_miro_board_for_repos(repos, branches):
         logger.info(f"Processing repo: {repo}")
 
         all_ticket_ids_and_commit_msgs = repo_to_all_ticket_ids[repo]
-        any_tickets = any(ticket_ids and commit_msgs for
+        any_tickets = any(ticket_ids or commit_msgs for
                           (ticket_ids, commit_msgs) in
                           all_ticket_ids_and_commit_msgs)
 
