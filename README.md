@@ -11,6 +11,10 @@ from the Miro board, streamlining your project management and collaboration effo
 Embrace the wisdom of Apollo and unlock the potential of your software development
 process with GitApolloMiraisor.
 
+English how to read: TODO
+
+Bulgarian how to read: https://www.youtube.com/watch?v=cRkkI6ZZe4U
+
 ## Quick Start
 
 Fill missing info and execute to start:
