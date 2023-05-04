@@ -15,7 +15,7 @@ English how to use: TODO
 
 Bulgarian how to use:
 
-[![GitApolloMiraisor: Визуализатор на Работния Процес върху Всички Ваши GitHub Репота](https://img.youtube.com/vi/cRkkI6ZZe4U/0.jpg)](https://www.youtube.com/watch?v=cRkkI6ZZe4U "GitApolloMiraisor: Визуализатор на Работния Процес върху Всички Ваши GitHub Репота")
+[![GitApolloMiraisor: Визуализатор на Работния Процес върху Всички Ваши GitHub Репота](https://img.youtube.com/vi/cRkkI6ZZe4U/0.jpg)](https://www.youtube.com/watch?v=cRkkI6ZZe4U&vq=hd720 "GitApolloMiraisor: Визуализатор на Работния Процес върху Всички Ваши GitHub Репота")
 
 ## Quick Start
 
