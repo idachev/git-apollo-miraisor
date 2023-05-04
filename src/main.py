@@ -87,7 +87,7 @@ def create_miro_shape_with_tickets(
         x, y,
         from_branch, to_branch,
         shape_color):
-    shape_text = f"<b>{from_branch} -> {to_branch}</b>\n"
+    shape_text = f"<b>{from_branch} &rarr; {to_branch}</b>\n"
 
     ticket_id_to_title = get_jira_tickets_titles(ticket_ids)
 
@@ -132,7 +132,7 @@ def create_miro_shape_for_prs(
         x, y,
         to_branch,
         shape_color):
-    shape_text = f"<b>Pull requests -> {to_branch}</b>\n"
+    shape_text = f"<b>Pull Requests &rarr; {to_branch}</b>\n"
 
     pr_texts = []
     for pr_info in pr_infos:
