@@ -29,6 +29,8 @@ connectors_url = f'{MIRO_API_URL}/boards/{MIRO_BOARD_ID}/connectors'
 
 items_url = f'{MIRO_API_URL}/boards/{MIRO_BOARD_ID}/items'
 
+html_tags = ['<b>', '</b>', '<br>', '<br/>', '</br>', '<p>', '</p>']
+
 
 def execute_requests_with_retry(lambda_func):
     for retry in range(1, MAX_REQUEST_RETRIES):
@@ -65,16 +67,17 @@ def execute_requests_with_retry(lambda_func):
 
 
 def normalize_line_len(line):
-    found = re.search(r"(?P<link><a[^>]+href=\"https?://[^\s\"]+[^>]+>)", line)
+    links = re.findall(r'(<a href="[^\s\"]+"[^>]*>)', line)
 
-    if not found:
-        return len(line)
+    line_len = len(line)
 
-    link_found = found.group("link")
-    if link_found:
-        return len(line) - len(link_found)
-    else:
-        return len(line)
+    for link in links:
+        line_len -= len(link)
+
+    for tag in html_tags:
+        line_len -= line.count(tag) * len(tag)
+
+    return line_len
 
 
 def calculate_shape_width_and_height_from_text(text):
