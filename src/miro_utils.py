@@ -5,6 +5,7 @@ import math
 import random
 import re
 import string
+import sys
 import time
 
 import requests
@@ -49,21 +50,38 @@ def execute_requests_with_retry(lambda_func):
                 logger.warning(
                         "Found 'the request has been blocked' "
                         "in response, sleep a bit...")
+
                 logger.warning(f"Response: {response.text}")
-                return None
+
+                time.sleep(
+                        random.randrange(1,
+                                         math.ceil(1.5 * MAX_REQUEST_RETRIES)))
+
+                continue
             else:
-                logger.error(
+                logger.fatal(
                         f"Got forbidden "
                         f"{response.status_code}, {response.text}")
-                return None
+                sys.exit(1)
 
-        try:
-            return response.json()
-        except Exception as e:
-            logger.exception(
-                    f"On retry {retry} Failed to parse response: "
-                    f"{response.status_code}, {response.text}, {e}")
-            time.sleep(random.randrange(2, 20))
+        if response.status_code == http.HTTPStatus.OK or \
+                response.status_code == http.HTTPStatus.CREATED:
+            try:
+                return response.json()
+            except Exception as e:
+                logger.exception(
+                        f"On retry {retry} Failed to parse response: "
+                        f"{response.status_code}, {response.text}, {e}")
+                time.sleep(random.randrange(2, 20))
+        else:
+            logger.fatal(
+                    f"Got unexpected status code {response.status_code}, "
+                    f"{response.text}")
+            sys.exit(2)
+
+    logger.fatal(
+            f"Failed to execute request after {MAX_REQUEST_RETRIES} retries")
+    sys.exit(3)
 
 
 def normalize_line_len(line):

@@ -4,7 +4,7 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 source ${DIR}/docker-build-env.sh
 
-if [[ "${DOCKER_RUN_ENV}" ]]; then
+if [[ -f "${DOCKER_RUN_ENV}" ]]; then
   source ${DOCKER_RUN_ENV}
 else
   source ${DIR}/docker-run-env.sh
@@ -14,7 +14,7 @@ set -e
 
 ${DIR}/docker-build.sh
 
-docker run -d -it \
+docker run -it \
   -e REPOS=${REPOS} \
   -e BRANCHES=${BRANCHES} \
   -e GITHUB_OWNER=${GITHUB_OWNER} \
