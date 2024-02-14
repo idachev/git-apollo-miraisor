@@ -169,6 +169,9 @@ def miro_create_shape(x, y, text, color=None):
     }
     if color:
         shape_payload['style']['fillColor'] = color
+        shape_payload['style']['fillOpacity'] = '1.0'
+
+    logger.debug(f"Creating shape ${shapes_url}: ${shape_payload}")
 
     return execute_requests_with_retry(
             lambda: requests.post(shapes_url,
