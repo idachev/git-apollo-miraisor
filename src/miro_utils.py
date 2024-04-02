@@ -164,9 +164,14 @@ def miro_create_shape(x, y, text, color=None):
         },
         "style": {
             "textAlignVertical": "middle",
-            "textAlign": ("center" if is_single_line else "left")
+            "textAlign": ("center" if is_single_line else "left"),
+            "borderStyle": "normal",
+            "borderOpacity": "1.0",
+            "borderWidth": "2",
+            "borderColor": "#000000"
         }
     }
+
     if color:
         shape_payload['style']['fillColor'] = color
         shape_payload['style']['fillOpacity'] = '1.0'
