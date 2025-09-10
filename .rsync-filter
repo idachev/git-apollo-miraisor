@@ -1,1 +1,6 @@
 - /venv
+- .idea/sonarlint
+
+- *.tmp
+- *.log
+
